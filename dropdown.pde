@@ -1,4 +1,4 @@
-class dropdown {
+class dropdown { //Unchanged from X3CC; don't look too closely
   String field;
   ArrayList<String> options;
   int x, y, boxW, boxH, selected, hover, typeSel, scrollFactor, scrollY, totalHeight, windH;

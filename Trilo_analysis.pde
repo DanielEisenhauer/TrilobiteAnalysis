@@ -30,7 +30,7 @@ boolean updateWayPointsNextFrame = false;
 int saveFill = 0;
 TableRow curRow;
 
-//TODO: Saving; rotation; cephalon templates
+//TODO: Cephalon templates, customizable projects, dynamic template creation?
 
 
 void setup() {
@@ -39,23 +39,23 @@ void setup() {
   background(255);
   //   surface.setResizable(true);
   // selectInput("Select image to analyze", "loadNewImage");
-  loadTemplates();
-  tem = coryPygid;
-  getAxisFurrows(nAxisFurrows);
-  getPleuralFurrows(nPleuralFurrows);
-  getSpines(nSpines);
+  loadTemplates();    //Creates templates; there is only one template at the moment:
+  tem = coryPygid;    //This one
+  getAxisFurrows(nAxisFurrows);    //generates the initial number of axial furrows
+  getPleuralFurrows(nPleuralFurrows);  //likewise pleural furrows
+  getSpines(nSpines);  //likewise spines
   zoom = new textBox("zoom", width-100, 110, 30, 100, true);
   textBoxes.add(zoom);
-  for (textBox b : tem.textBoxes) {
+  for (textBox b : tem.textBoxes) {    //So that all templates and dropdowns can be accessed by the cursor from one list
     textBoxes.add(b);
   }
   for (dropdown dd : tem.dropdowns) {
     dropDowns.add(dd);
   }
   tempImg = new PImage(width, height);
-  //   new project(curProjName);
-  loadProject(curProjName);
-  YNOptions.add("Yes");
+  //   new project(curProjName);      //This has to be run every time a new file is wanted. Will delete all data saved to an existing project with the same name. Use with caution.
+  loadProject(curProjName);  //Hardcoded to ICS-10024 for now, since that's the only project I'm working on
+  YNOptions.add("Yes");  //Generating lists for dropdowns
   YNOptions.add("No");
   YNOptions.add("Partial");
   YNOptions.add("Unclear");
@@ -68,11 +68,11 @@ void setup() {
   // println(str(nAxisFurrows));
 }
 
-void pre() {
+void pre() {    //I hate this function. It exists because I was having thread problems when deleting spines. It makes everything else worse.
   // println("pre");
   // println(purgePleuralFurrows);
   ArrayList<Integer> toKill = new ArrayList<Integer>();
-  if (purgeAxisFurrows) {
+  if (purgeAxisFurrows) {    //Removes axial furrows
     for (int i = 0; i < tem.wayPoints.size(); i++) {
       if (tem.wayPoints.get(i).type == "axial") {
         toKill.add(i);
@@ -85,7 +85,7 @@ void pre() {
     addAxisFurrows = true;
     purgeAxisFurrows = false;
   }
-  if (purgePleuralFurrows) {
+  if (purgePleuralFurrows) {    //Likewise pleural furrows
     for (int i = 0; i < tem.wayPoints.size(); i++) {
       if (tem.wayPoints.get(i).type == "pleural") {
         toKill.add(i);
@@ -101,7 +101,7 @@ void pre() {
     addPleuralFurrows = true;
     purgePleuralFurrows = false;
   }
-  if (purgeSpines) {
+  if (purgeSpines) { //Likewise spines
     for (int i = 0; i < tem.wayPoints.size(); i++) {
       if (tem.wayPoints.get(i).type == "spine") {
         toKill.add(i);
@@ -116,30 +116,30 @@ void pre() {
   }
 }
 
-void loadNewImage(File s) {
+void loadNewImage(File s) {    //Three guesses what this does
   curImgPath = s.toString();
   if (s != null) {
     curImg = loadImage(s.toString());
   }
   hasTempImg = false;
-  scaleA = new wayPoint("scaleA", 300, 100, "scale");
+  scaleA = new wayPoint("scaleA", 300, 100, "scale");    //Hard reset of the scale bar; absolutely do not want to accidentally confuse the scale from one img with the next
   scaleB = new wayPoint("scaleB", 200, 100, "scale");
   scaleA.isScale = true;
   scaleB.isScale = true;
   movedScale = false;
-  zoomLevel = 1;
+  zoomLevel = 1;  //reset zoom too
   zoom.chars.clear();
   imgStartX = 0;
   imgStartY = 0;
-  tem.textBoxes.get(4).chars.clear();
-  tem.textBoxes.get(2).chars.clear();
-  for (dropdown dd : tem.dropdowns) {
+  tem.textBoxes.get(4).chars.clear();    //reset the ID of the image
+  tem.textBoxes.get(2).chars.clear();    //reset the scale distance
+  for (dropdown dd : tem.dropdowns) {    //clear all dropdowns
     dd.selected = -1;
   }
   curRow = tab.findRow(curImgPath, "filepath");
   TableRow r = curRow;
-  if (r != null) {
-    zoomLevel = r.getFloat("zoom");
+  if (r != null) { // if this image has saved waypoints associated with it; looking at the image filepath
+    zoomLevel = r.getFloat("zoom"); //set everything to what's been saved
     zoomLevelOld = zoomLevel;
     cumulativeRotation = r.getFloat("rotation");
     translateX = r.getFloat("translate_x");
@@ -152,7 +152,7 @@ void loadNewImage(File s) {
     //  getAxisFurrows(nAxisFurrows);
     //  getPleuralFurrows(nPleuralFurrows);
     //  getSpines(nSpines);
-    purgeAxisFurrows = true;
+    purgeAxisFurrows = true; //BURN THE FURROWS
     purgePleuralFurrows = true;
     purgeSpines = true;
     nAxisFurrowsOld = nAxisFurrows;
@@ -166,47 +166,18 @@ void loadNewImage(File s) {
     scaleB.xPos = r.getFloat("scaleB_xPos");
     scaleB.yPos = r.getFloat("scaleB_yPos");
     displayLeft = boolean(r.getString("dispL"));
-    displayRight = boolean(r.getString("dispR"));
+    displayRight = boolean(r.getString("dispR"));  
     movedScale = true;
-    /*   for (int i = 0; i < str(nAxisFurrows).length(); i++) {
-     tem.textBoxes.get(0).chars.add(str(nAxisFurrows).charAt(i));
-     }
-     for (int i = 0; i < str(nPleuralFurrows).length(); i++) {
-     tem.textBoxes.get(1).chars.add(str(nPleuralFurrows).charAt(i));
-     }*/
-    /*     textBoxes.clear();
-     textBoxes.add(zoom);
-     dropDowns.clear();
-     for (textBox b : tem.textBoxes) {
-     textBoxes.add(b);
-     }
-     for (dropdown dd : tem.dropdowns) {
-     dropDowns.add(dd);
-     }*/
     tem.textBoxes.get(0).setText(str(nAxisFurrows));
     tem.textBoxes.get(1).setText(str(nPleuralFurrows));
     zoom.setText(str(zoomLevel));
-    tem.textBoxes.get(5).setText(str(nSpines));
+    tem.textBoxes.get(5).setText(str(nSpines));  //Set all options to whatever they were
     tem.textBoxes.get(2).setText(str(r.getFloat("scaleDist")));
     tem.textBoxes.get(4).setText(r.getString("id"));
     tem.dropdowns.get(0).setSel(r.getString("ip_furrows"));
     tem.dropdowns.get(1).setSel(r.getString("exfoliated"));
     tem.dropdowns.get(2).setSel(r.getString("ornamentation"));
-    //  addAxisFurrows = true;
-    //  addPleuralFurrows = true;
-    // addSpines = true;
-    //   getAxisFurrows(nAxisFurrows);
-    //  getPleuralFurrows(nPleuralFurrows);
-    //   getSpines(nSpines);
-    /*   for (int i = 0; i < str(nSpines).length(); i++) {
-     tem.textBoxes.get(5).chars.add(str(nSpines).charAt(i));
-     }
-     println(tem.textBoxes.get(1).getText());
-     println(nPleuralFurrows);
-     for (int i = 0; i < str(zoomLevel).length(); i++) {
-     zoom.chars.add(str(zoomLevel).charAt(i));
-     }*/
-    updateWayPointsNextFrame = true;
+    updateWayPointsNextFrame = true;  //This is because of the aforementioned bloody thread issues
   }
   // println(textBoxes.size());
 }
@@ -233,13 +204,13 @@ void draw() {
     widthOld = width;
     heightOld = height;
   }
-  if (curImg != null && draggingImage) {
+  if (curImg != null && draggingImage) {  //Only create a new small image if necessary, for performance
     image(curImg, imgStartX, imgStartY, zoomLevel*width, zoomLevel*curImg.height*(width*1.0/curImg.width));
   }
   if (curImg != null && !draggingImage && hasTempImg) {
     image(tempImg, 0, 0);
   }
-  if (curImg != null && !draggingImage && !hasTempImg) {
+  if (curImg != null && !draggingImage && !hasTempImg) {  //The trilobite pictures are huge. Using a smaller version, just what's show on screen, for performance reasons
     image(curImg, imgStartX, imgStartY, zoomLevel*width, zoomLevel*curImg.height*(width*1.0/curImg.width));
     loadPixels();
     tempImg = new PImage(width, height);
@@ -254,7 +225,7 @@ void draw() {
     hasTempImg = true;
   }
 
-  if (!tem.textBoxes.get(0).getText().equals("")) {
+  if (!tem.textBoxes.get(0).getText().equals("")) {  //Make sure all the furrows and spines are still as they should be
     nAxisFurrows = int(tem.textBoxes.get(0).getText());
   }
   if (!tem.textBoxes.get(1).getText().equals("")) {
@@ -279,7 +250,7 @@ void draw() {
     nSpinesOld = nSpines;
     purgeSpines = true;
   }
-  fill(200);
+  fill(200);    //Draw the UI
   rect(width-100, 0, 100, 30);
   fill(150);
   if(saveFill > 0){
@@ -336,7 +307,7 @@ void draw() {
   text("Reset", 3, 24);
   text("Spines:", 303, height-96);
 
-  for (textBox tb : textBoxes) {
+  for (textBox tb : textBoxes) {  //Display the interactables
     tb.display(tb.y);
   }
   for (dropdown dd : dropDowns) {
@@ -346,22 +317,22 @@ void draw() {
   //  cumulativeRotation = 0;
   //  tem.display();
   //  cumulativeRotation = CROld;
-  if (updateWayPointsNextFrame) {
-    for (wayPoint wp : tem.wayPoints) {
-      wp.xPos = curRow.getFloat(wp.name + "_xPos");
+  if (updateWayPointsNextFrame) {  //If we just loaded a saved image
+    for (wayPoint wp : tem.wayPoints) {    //Set all the waypoints to where they were
+      wp.xPos = curRow.getFloat(wp.name + "_xPos");  //This has to happen on the next frame to give a chance to generate axial furrows in pre(), but I hate it
       wp.yPos = curRow.getFloat(wp.name + "_yPos");
       wp.certain = boolean(curRow.getString(wp.name + "_certain"));
       if (wp.arcPinned) {
         wp.arcPin = curRow.getFloat(wp.name + "_pin");
       }
-      wp.justMovedControl = true;
+      wp.justMovedControl = true; //Control points move other waypoints when they move
     }
     updateWayPointsNextFrame = false;
   }
   int axial = 0;
   int pleural = 0;
   int spine = 0;
-  for (wayPoint wp : tem.wayPoints) {
+  for (wayPoint wp : tem.wayPoints) { //Umm, I don't think I'm using this anymore, but it was useful to make sure I had the right number of meristic characters generated
     if (wp.type == "axial") axial++;
     if (wp.type == "pleural") pleural++;
     if (wp.type == "spine") spine++;
@@ -373,23 +344,13 @@ void draw() {
   // for(wayPoint wp : tem.wayPoints){
   //   wp.drawDot(wp.xPos + 1000, wp.yPos + 100);
   // }
-  connect(scaleA, scaleB, color(255));
+  connect(scaleA, scaleB, color(255));  //The scale bar is inviolate
   scaleA.update();
   scaleB.update();
 }
 
-void getAxisFurrows(int n) {
-  /*  for (int i = 0; i <= 100; i++) {
-   if (tem.wayPoints.size() > i) {
-   if (tem.wayPoints.get(i).name.length() > 10) {
-   if (tem.wayPoints.get(i).name.substring(0, 7).equals("AxisFur")) {
-   tem.wayPoints.remove(tem.wayPoints.get(i));
-   i--;
-   }
-   }
-   }
-   }*/
-  if (addAxisFurrows) {
+void getAxisFurrows(int n) {  //Generates new axial furrows
+  if (addAxisFurrows) {     //But no longer destroys them; that happens in pre()
     String name = "";
     float axisLength = axisLastFurrow.yPos - CPAxisTop.yPos;
     for (int i = 0; i < n - 2; i++) {
@@ -411,18 +372,7 @@ void getAxisFurrows(int n) {
   }
   addAxisFurrows = false;
 }
-void getPleuralFurrows(int n) {
-  /* for (int i = 0; i <= 100; i++) {
-   if (tem.wayPoints.size() > i) {
-   if (tem.wayPoints.get(i).name.length() > 10) {
-   if (tem.wayPoints.get(i).name.substring(0, 7).equals("pleural")) {
-   tem.wayPoints.remove(tem.wayPoints.get(i));
-   i--;
-   }
-   }
-   }
-   }*/
-  // println(addPleuralFurrows);
+void getPleuralFurrows(int n) {    //Likewise pleural furrows
   if (addPleuralFurrows) {
     addPleuralFurrows = false;
     String name = "";
@@ -445,17 +395,7 @@ void getPleuralFurrows(int n) {
   }
   addPleuralFurrows = false;
 }
-void getSpines(int n) {
-  /* for (int i = 0; i <= 100; i++) {
-   if (tem.wayPoints.size() > i) {
-   if (tem.wayPoints.get(i).name.length() > 10) {
-   if (tem.wayPoints.get(i).name.substring(0, 5).equals("spine")) {
-   tem.wayPoints.remove(tem.wayPoints.get(i));
-   i--;
-   }
-   }
-   }
-   }*/
+void getSpines(int n) {    //Likewise spines
   if (addSpines) {
     String name = "";
     for (int i = 0; i < n; i++) {
@@ -489,17 +429,17 @@ void mousePressed() {
   imgStartXOld = imgStartX;
   imgStartYOld = imgStartY;
   boolean draggingOther = false;
-  for (int i = tem.wayPoints.size() - 1; i >= 0; i--) {
+  for (int i = tem.wayPoints.size() - 1; i >= 0; i--) { //If clicking on a waypoint, move it around
     wayPoint wp = tem.wayPoints.get(i);
     if (mouseX >= wp.dispX - 10 && mouseX <= wp.dispX + 10 && mouseY >= wp.dispY - 10 && mouseY <= wp.dispY + 10 && !draggingOther && displayLeft) {
       wp.isDragging = true;
       draggingOther = true;
-    }
+    }//Likewise if on its reflection
     if (mouseX >= wp.refX - 10 && mouseX <= wp.refX + 10 && mouseY >= wp.refY - 10 && mouseY <= wp.refY + 10 && !draggingOther && displayRight) {
       wp.draggingRef = true;
       draggingOther = true;
     }
-  }
+  }//Even if it's the scale bar
   if (mouseX >= scaleA.xPos - 10 && mouseX <= scaleA.xPos + 10 && mouseY >= scaleA.yPos - 10 && mouseY <= scaleA.yPos + 10 && !draggingOther) {
     scaleA.isDragging = true;
     draggingOther = true;
@@ -510,7 +450,7 @@ void mousePressed() {
     draggingOther = true;
     movedScale = true;
   }
-  if (openTextBox != null) {
+  if (openTextBox != null) {  //Unchanged from X3CC
     openTextBox.updateCursor();
     openTextBox.hlStart = openTextBox.getCursor();
     openTextBox.hlEnd = openTextBox.hlStart;
@@ -521,11 +461,11 @@ void mousePressed() {
 
 void mouseDragged() {
   for (wayPoint wp : wayPoints) {
-    if (wp.isDragging || wp.draggingRef) {
+    if (wp.isDragging || wp.draggingRef) { //Does what it says on the box
       wp.update();
     }
   }
-  if (openTextBox == null && shiftPressed) {
+  if (openTextBox == null && shiftPressed) {  //Unchanged from X3CC
     imgStartX = mouseX + (imgStartXOld - mouseStartX);
     imgStartY = mouseY + (imgStartYOld - mouseStartY);
     if (movedScale) {
@@ -541,7 +481,7 @@ void mouseDragged() {
     draggingImage = true;
     hasTempImg = false;
   }
-  if (openTextBox != null) {
+  if (openTextBox != null) {//Highlighting is a pain
     if (openTextBox.hasHL) {
       openTextBox.hlEnd = openTextBox.getCursor();
       openTextBox.cursor = openTextBox.getCursor();
@@ -553,7 +493,7 @@ void mouseClicked() {
   openDropdown = null;
   openTextBox = null;
   if (mouseButton == LEFT) {
-    if (mouseX > width - 100 && mouseY < 60 && mouseY > 30) {
+    if (mouseX > width - 100 && mouseY < 60 && mouseY > 30) {  //UI stuff
       selectInput("Select image to analyze", "loadNewImage");
     }
     if (mouseX > width - 100 && mouseY < 30) {
@@ -566,11 +506,8 @@ void mouseClicked() {
       displayRight = !displayRight;
     }
     if (mouseX < 100 && mouseY < 30) {
-      loadTemplates();
+      loadTemplates(); //hard reset everything
       tem = coryPygid;
-      //   getAxisFurrows(nAxisFurrows);
-      ////   getPleuralFurrows(nPleuralFurrows);
-      //    getSpines(nSpines);
       purgeAxisFurrows = true;
       purgePleuralFurrows = true;
       purgeSpines = true;
@@ -586,7 +523,7 @@ void mouseClicked() {
       scaleA.xPos = 300;
       scaleA.yPos = 100;
       scaleB.xPos = 200;
-      scaleB.yPos = 100;
+      scaleB.yPos = 100;  //REALLY hard reset
       tem.textBoxes.get(4).chars.clear();
       tem.textBoxes.get(2).chars.clear();
       for (dropdown dd : tem.dropdowns) {
@@ -600,7 +537,7 @@ void mouseClicked() {
         dropDowns.add(dd);
       }
     }
-    for (int a = 0; a < dropDowns.size(); a++) {
+    for (int a = 0; a < dropDowns.size(); a++) { //Unchanged from X3CC
       dropdown menu = dropDowns.get(a);
       if (mouseX > menu.x && mouseX < menu.x+menu.boxW && mouseY > menu.y && mouseY < menu.y+menu.boxH) {
         if (!menu.open && !boxOpen) { //  && !menu.isBlank
@@ -670,11 +607,11 @@ void keyPressed() {
   if (keyCode == SHIFT) {
     shiftPressed = true;
   }
-  if (keyCode == CONTROL) {
+  if (keyCode == CONTROL) {  //For getting pictures for demos; will replace with actual generator function if needed
     save(tem.textBoxes.get(4).getText() + ".jpg");
     println("screenshot");
   }
-  for (int i = 0; i < textBoxes.size(); i++) {
+  for (int i = 0; i < textBoxes.size(); i++) {  //Unchanged from X3CC
     textBox box = textBoxes.get(i);
     if (box.open) {
       if (box.accept.contains(str(key))) {

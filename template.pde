@@ -1,7 +1,7 @@
 wayPoint axisTop, axisBottom, borderBottomCenter, borderInnerLat, ALCornerTop, ALCornerLat, axisTopLat, axisBottomLat, axisLastFurrow, scaleA, scaleB, outerBorderBez1, outerBorderBez2, innerBorderBez1, innerBorderBez2, CPAxisTop, CPAxisBottom, CPAntLat;
 wayPoint axisFirstFurrow, axisRingTop, axisRingLat;
 template coryPygid;
-class template {
+class template { //This is such a mess. Works right now, but adding cranidial templates will be a pain in the pygidium.
   String name;
   ArrayList<wayPoint> wayPoints;
   ArrayList<textBox> textBoxes;
@@ -25,13 +25,13 @@ class template {
 
   void display() {
     pushMatrix();
-    translate(translateX, translateY);
-    rotate(cumulativeRotation);
+    translate(translateX, translateY); //Translate to the position of CPAxisTop
+    rotate(cumulativeRotation); //Rotate about CPAxisTop
     for (wayPoint wp : wayPoints) {
       wp.update();
     }
 
-    connect(CPAxisTop, axisBottom, color(255));
+    connect(CPAxisTop, axisBottom, color(255));  //Draw all the lines
     connect(CPAxisTop, axisRingTop, color(255));
     connect(axisBottom, borderBottomCenter, color(255));
     connect(axisTopLat, ALCornerTop, color(255));
@@ -47,7 +47,7 @@ class template {
     connectArc(borderBottomCenter, outerBorderBez1, outerBorderBez2, ALCornerLat, color(135,206,250));
     connectArc(axisBottom, innerBorderBez1, innerBorderBez2, borderInnerLat, color(0, 255, 0));
     stroke(0);
-    if(displayLeft){
+    if(displayLeft){  //I said ALL THE LINES
       stroke(0);
       strokeWeight(4);
       arc(axisBottom.xPos, axisBottomLat.yPos, 2*(axisBottom.xPos - axisBottomLat.xPos), 2*(axisBottom.yPos - axisBottomLat.yPos), HALF_PI, PI);
@@ -86,28 +86,8 @@ class template {
         connect(tem.wayPoints.get(i+3),tem.wayPoints.get(i+1),color(255));
       }
     }
-/*    for (int i = 0; i < nAxisFurrows - 2; i++) {
-      wayPoint top = getWayPoint("AxisFurrowCenter" + i, coryPygid.wayPoints);
-      wayPoint lat = getWayPoint("AxisFurrowLat" + i, coryPygid.wayPoints);
-      connect(top, lat, color(255));
-      stroke(0);
-    }
-    for (int i = 0; i < nPleuralFurrows - 1; i++) {
-      wayPoint top = getWayPoint("pleuralInner" + i, coryPygid.wayPoints);
-      wayPoint lat = getWayPoint("pleuralOuter" + i, coryPygid.wayPoints);
-      connect(top, lat, color(255));
-    }
-    for(int i = 0; i < nSpines; i++){
-      wayPoint baseAnt = getWayPoint("spineBaseAnt"+i,coryPygid.wayPoints);
-      wayPoint baseLat = getWayPoint("spineBasePost"+i,coryPygid.wayPoints);
-      wayPoint tipAnt = getWayPoint("spineTipAnt"+i,coryPygid.wayPoints);
-      wayPoint tipLat = getWayPoint("spineTipPost"+i,coryPygid.wayPoints);
-      connect(baseAnt,tipAnt,color(255));
-      connect(tipAnt,tipLat,color(255));
-      connect(tipLat,baseLat,color(255));
-    }*/
     stroke(0);
-    for (wayPoint wp : wayPoints) {
+    for (wayPoint wp : wayPoints) {//There's probably a reason I have them all update twice? I don't remember what it is. I'll screw with this later and see if I need it.
       //    wp.update();
       if (!wp.isScale) {
         wp.update();
@@ -122,7 +102,7 @@ class template {
   }
 }
 
-void loadTemplates() {
+void loadTemplates() {//Don't look too hard at this
   coryPygid = new template("Corynexochid pygidium");
   coryPygid.countNames.add("axisFurrows");
   coryPygid.countVals.add(nAxisFurrows);
@@ -141,7 +121,7 @@ void loadTemplates() {
  // coryPygid.textBoxes.get(3).chars.add('m');
  coryPygid.textBoxes.get(3).setText("mm");
   coryPygid.textBoxes.add(new textBox("NONE",200,height - 120,30,100,true));
-  coryPygid.textBoxes.add(new textBox("spines",400,height-120,30,100,true));
+  coryPygid.textBoxes.add(new textBox("spines",400,height-120,30,100,true));//All the interactables
   coryPygid.textBoxes.get(5).setText(str(nSpines));
   coryPygid.qualNames.add("ip_furrows");
   coryPygid.qualNames.add("exfoliated");
@@ -152,7 +132,7 @@ void loadTemplates() {
   coryPygid.dropdowns.add(new dropdown("Not specified",600,height-90,30,400,YNOptions));
   coryPygid.dropdowns.add(new dropdown("Not specified",600,height-60,30,400,YNOptions));
   coryPygid.dropdowns.add(new dropdown("Not specified",600,height-30,30,400,ornamentationOptions));
-  CPAxisTop = new wayPoint("CPAxisTop", 1000, 100, "control");
+  CPAxisTop = new wayPoint("CPAxisTop", 1000, 100, "control");//Generate all the waypoints
   axisBottom = new wayPoint("axisBottom", 1000, 1050, "standard");
   CPAxisBottom = new wayPoint("CPAxisBottom", 1000, 1200, "control");
   CPAntLat = new wayPoint("CPAntLat", 100, 100, "control");
@@ -186,7 +166,7 @@ void loadTemplates() {
   coryPygid.wayPoints.add(axisBottom);
   coryPygid.wayPoints.add(borderBottomCenter);
   coryPygid.wayPoints.add(ALCornerTop);
-  coryPygid.wayPoints.add(ALCornerLat);
+  coryPygid.wayPoints.add(ALCornerLat);//Continue generating all the waypoints
   coryPygid.wayPoints.add(axisTopLat);
   coryPygid.wayPoints.add(axisBottomLat);
   coryPygid.wayPoints.add(axisLastFurrow);
@@ -212,7 +192,7 @@ void loadTemplates() {
   axisBottom.col = color(0, 255, 0);
   CPAxisBottom.col = color(255, 0, 0);
 
-  for (wayPoint wp : coryPygid.wayPoints) {
+  for (wayPoint wp : coryPygid.wayPoints) { //Really generate all the waypoints
     wp.totalControl = CPAxisTop;
     wp.xControl = CPAntLat;
     wp.yControl = CPAxisBottom;

@@ -1,4 +1,4 @@
-class textBox {
+class textBox { //Unchanged from X3CC; don't look too closely
   int x, y, boxW, boxH, cursor = 0, hlStart, hlEnd, time = 0;
   ArrayList<Character> chars = new ArrayList<Character>();
   color fillCol, selCol, hlCol;

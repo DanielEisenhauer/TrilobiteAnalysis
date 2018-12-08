@@ -27,7 +27,7 @@ class wayPoint {
 
   void update() {
     if (!isScale) {
-      dispX = xPos*cos(cumulativeRotation) - yPos*sin(cumulativeRotation) + translateX;
+      dispX = xPos*cos(cumulativeRotation) - yPos*sin(cumulativeRotation) + translateX;//Scale waypoints don't move and are displayed independently
       dispY = xPos*sin(cumulativeRotation) + yPos*cos(cumulativeRotation) + translateY;
     } else {
       dispX = xPos;
@@ -40,7 +40,7 @@ class wayPoint {
       //  println(name);
       //  println(totalControl.name);
       tControlXOld = totalControl.xPos;
-      tControlYOld = totalControl.yPos;
+      tControlYOld = totalControl.yPos;  //if CPAxisTop has moved, move everything else with it
       xControlXOld = xControl.xPos;
       xControlYOld = xControl.yPos;
       yControlYOld = yControl.yPos;
@@ -48,7 +48,7 @@ class wayPoint {
     }
     if ((!pinned && !arcPinned) && pinA != null) {
       arcPinned = true;
-      pinAXOld = pinA.xPos;
+      pinAXOld = pinA.xPos;//This isn't how I'm handling pins anymore, but I think a couple WPs still use it. Could change later, but meh
       pinAYOld = pinA.yPos;
       pinBXOld = pinB.xPos;
       pinBYOld = pinB.yPos;
@@ -57,7 +57,7 @@ class wayPoint {
       arcPin = dist(xPos, yPos, pinA.xPos, pinA.yPos)/dist(pinA.xPos, pinA.yPos, pinB.xPos, pinB.yPos);
     }
     if(justMovedControl){
-      tControlXOld = totalControl.xPos;
+      tControlXOld = totalControl.xPos;  //Because all the other control points also got moved, and I don't need to count them twice
       tControlYOld = totalControl.yPos;
       xControlXOld = xControl.xPos;
       yControlYOld = yControl.yPos;
@@ -68,7 +68,7 @@ class wayPoint {
     }
     if (totalControl != null && (totalControl.xPos != tControlXOld || totalControl.yPos != tControlYOld) && !totalControl.equals(this) && !isScale) {
       xPos += (totalControl.xPos - tControlXOld);
-      yPos += (totalControl.yPos - tControlYOld);
+      yPos += (totalControl.yPos - tControlYOld); //if CPAxisTop moves
       tControlXOld = totalControl.xPos;
       tControlYOld = totalControl.yPos;
       xControlXOld = xControl.xPos;
@@ -83,7 +83,7 @@ class wayPoint {
     if (xControl != null && (xControl.xPos != xControlXOld || xControl.yPos != xControlYOld) && !xControl.equals(this) && !isScale && !justMovedControl) {
       float distChange = (totalControl.xPos - xControl.xPos) / (totalControl.xPos - xControlXOld);
       xPos = totalControl.xPos - (totalControl.xPos - xPos)*distChange;
-      xControlXOld = xControl.xPos;
+      xControlXOld = xControl.xPos; //If CPAntLat moves
       xControlYOld = xControl.yPos;
       justMovedControl = true;
     }
@@ -92,7 +92,7 @@ class wayPoint {
       yPos = totalControl.yPos - (totalControl.yPos - yPos)*distChange;
       yControlYOld = yControl.yPos;
       yControlXOld = yControl.xPos;
-      justMovedControl = true;
+      justMovedControl = true; //if CPAxisBottom moves
     }
 
     float mouseTempX = mouseX;
@@ -102,12 +102,12 @@ class wayPoint {
     // mouseTempY = (translateY - mouseY - mouseX*sin(cumulativeRotation))/cos(cumulativeRotation);
     //   }
     if(pinned){
-      println("pinned");
+      println("pinned"); //Nothing is pinned anymore. Converted entirely to arcPins for consistency. All code referencing pin could be deleted, but I haven't bothered
     }
     if (isDragging || draggingRef) {
    //   println(name);
       hasMoved = true;
-      if (pinned) {
+      if (pinned) {//Nothing is anymore, but screw it
         if (abs(pinA.dispX - pinB.dispX) >= abs(pinA.dispY - pinB.dispY)) {
           if ((mouseTempX > pinA.dispX && mouseTempX < pinB.dispX) || (mouseTempX < pinA.dispX && mouseTempX > pinB.dispX)) {
             dispX = mouseTempX;
@@ -123,7 +123,7 @@ class wayPoint {
           yPos = (dispY - translateY)*cos(-cumulativeRotation) + (dispX - translateX)*sin(-cumulativeRotation);
       } else if (arcPinned) {
         FloatList dists = new FloatList();
-        for (float i = 0; i <= 1; i+=0.005) {
+        for (float i = 0; i <= 1; i+=0.005) {//I might work on increasing resolution here without trashing performance.
           if (isDragging) {
             dists.append(dist(mouseTempX, mouseTempY, ((pow((1 - i), 3)*pinA.dispX) + (3*sq(1-i)*i*bezA.dispX) +(3*(1-i)*sq(i)*bezB.dispX + (pow(i, 3)*pinB.dispX))), ((pow((1 - i), 3)*pinA.dispY) + (3*sq(1-i)*i*bezA.dispY) +(3*(1-i)*sq(i)*bezB.dispY + (pow(i, 3)*pinB.dispY)))));
           } else {
@@ -131,37 +131,37 @@ class wayPoint {
           }
           for (int f = 0; f < dists.size(); f++) {
             if (dists.get(f) == dists.min()) {
-              arcPin = (f*0.005);
+              arcPin = (f*0.005); //Move the point to the closest possible place on the line to the cursor
             }
           }
           dispX = (pow((1 - arcPin), 3)*pinA.dispX) + (3*sq(1-arcPin)*arcPin*bezA.dispX) +(3*(1-arcPin)*sq(arcPin)*bezB.dispX + (pow(arcPin, 3)*pinB.dispX));
           dispY = (pow((1 - arcPin), 3)*pinA.dispY) + (3*sq(1-arcPin)*arcPin*bezA.dispY) +(3*(1-arcPin)*sq(arcPin)*bezB.dispY + (pow(arcPin, 3)*pinB.dispY));
-          xPos = (dispX - translateX)*cos(-cumulativeRotation) - (dispY - translateY)*sin(-cumulativeRotation);
+          xPos = (dispX - translateX)*cos(-cumulativeRotation) - (dispY - translateY)*sin(-cumulativeRotation); //Screw Bezier and his formulas
           yPos = (dispY - translateY)*cos(-cumulativeRotation) + (dispX - translateX)*sin(-cumulativeRotation);
         }
       } else {
         if (isDragging) {
           dispX = mouseTempX;
-          dispY = mouseTempY;
-          xPos = (dispX - translateX)*cos(-cumulativeRotation) - (dispY - translateY)*sin(-cumulativeRotation);
+          dispY = mouseTempY; //Isn't this so easy when things aren't pinned
+          xPos = (dispX - translateX)*cos(-cumulativeRotation) - (dispY - translateY)*sin(-cumulativeRotation);//I hope this is finally the right display formula
           yPos = (dispY - translateY)*cos(-cumulativeRotation) + (dispX - translateX)*sin(-cumulativeRotation);
         } else {
-          refX = mouseTempX;
+          refX = mouseTempX; //Same thing except for the right side of the trilobite
           refY = mouseTempY;
           xPos = -((refX - translateX)*cos(-cumulativeRotation) - (refY - translateY)*sin(-cumulativeRotation));
           yPos = (refY - translateY)*cos(-cumulativeRotation) + (refX - translateX)*sin(-cumulativeRotation);
         }
-        if (this.equals(CPAxisBottom)) {
+        if (this.equals(CPAxisBottom)) { //CPAxisBottom controls rotation about CPAxisTop
           cumulativeRotation = -atan((translateX - mouseX)/(translateY - dispY));
           xPos = 0;
           yPos = dist(0, 0, mouseTempX-translateX, mouseTempY-translateY);
         }
         if (this.equals(CPAntLat)) {
-          yPos = 0;
+          yPos = 0; //So that it doesn't move itself, since it's its own control point
           xPos = -dist(0, 0, mouseTempX-translateX, mouseTempY-translateY);
         }
         if (this.equals(CPAxisTop)) {
-          xPos = 0;
+          xPos = 0; //It ALWAYS lives at 0,0. TranslateX and translateY put it where it goes on the screen. This means all trilo coordinates are relative to it
           yPos = 0;
 
           translateX = mouseX;
@@ -183,7 +183,7 @@ class wayPoint {
       pinAYOld = pinA.yPos;
       pinBYOld = pinB.yPos;
     }
-    if (pinned && (pinA.xPos != pinAXOld || pinA.yPos != pinAYOld || pinB.xPos != pinBXOld || pinB.yPos != pinBYOld)) {
+    if (pinned && (pinA.xPos != pinAXOld || pinA.yPos != pinAYOld || pinB.xPos != pinBXOld || pinB.yPos != pinBYOld)) { //Pinned WPs move with their pins
       float downPercent = dist(xPos, yPos, pinAXOld, pinAYOld)*1.0/dist(pinAXOld, pinAYOld, pinBXOld, pinBYOld);
       xPos = pinA.xPos + downPercent*(pinB.xPos - pinA.xPos);
       yPos = pinA.yPos + downPercent*(pinB.yPos - pinA.yPos);
@@ -193,19 +193,19 @@ class wayPoint {
       pinBYOld = pinB.yPos;
       hasMoved = true;
     }
-    if (arcPinned && (pinA.hasMoved || pinB.hasMoved || bezA.hasMoved || bezB.hasMoved)) {
+    if (arcPinned && (pinA.hasMoved || pinB.hasMoved || bezA.hasMoved || bezB.hasMoved)) { //Arcpins are pinned to a Bezier curve, not to a straight line
       xPos = (pow((1 - arcPin), 3)*pinA.xPos) + (3*sq(1-arcPin)*arcPin*bezA.xPos) +(3*(1-arcPin)*sq(arcPin)*bezB.xPos + (pow(arcPin, 3)*pinB.xPos));
       yPos = (pow((1 - arcPin), 3)*pinA.yPos) + (3*sq(1-arcPin)*arcPin*bezA.yPos) +(3*(1-arcPin)*sq(arcPin)*bezB.yPos + (pow(arcPin, 3)*pinB.yPos));
       hasMoved = true;
     }
-    if(type == "center"){
+    if(type == "center"){ //For WPs on the line between CPAxisTop and CPAxisBottom
       xPos = 0;
     }
     refX = -xPos*cos(cumulativeRotation) - yPos*sin(cumulativeRotation) + translateX;
     refY = -xPos*sin(cumulativeRotation) + yPos*cos(cumulativeRotation) + translateY;
 
 
-    drawDot(xPos, yPos);
+    drawDot(xPos, yPos);//Display the WP
     justMovedControl = false;
     if (totalControl != null) {
       xControlXOld = xControl.xPos;
@@ -231,7 +231,7 @@ class wayPoint {
       rect(x-5,y-5,10,10);
     }
     if (displayLeft) {
-      if(vertBar && isDragging){
+      if(vertBar && isDragging){ //VertBar and horizBar are for the anteriorlateral corner WPs, to make it more obvious where they should be placed
         line(x,y-200,x,y+200);
         line(x+5,y,x-5,y);
         strokeWeight(1);
@@ -283,7 +283,7 @@ class wayPoint {
   }
 }
 
-wayPoint getWayPoint (String name, ArrayList<wayPoint> wps) {
+wayPoint getWayPoint (String name, ArrayList<wayPoint> wps) { //Another one of those three guesses functions
   //  println(name);
   for (wayPoint wp : wps) {
     if (wp.name.equals(name)) {
@@ -293,8 +293,8 @@ wayPoint getWayPoint (String name, ArrayList<wayPoint> wps) {
   return null;
 }
 
-void pin(wayPoint a, wayPoint b, wayPoint c) {
-  float dist = 0;
+void pin(wayPoint a, wayPoint b, wayPoint c) { //Pinning lots of things in various ways. Nothing is actually pinnned; all of these arcpin.
+  float dist = 0;  //This one pins the point to where it already is on-screen
   FloatList dists = new FloatList();
   for (float i = 0; i <= 1; i+=0.005) {
     dists.append(dist(a.xPos, a.yPos, ((pow((1 - i), 3)*b.xPos) + (3*sq(1-i)*i*b.xPos) +(3*(1-i)*sq(i)*c.xPos + (pow(i, 3)*c.xPos))), ((pow((1 - i), 3)*b.yPos) + (3*sq(1-i)*i*b.yPos) +(3*(1-i)*sq(i)*c.yPos + (pow(i, 3)*c.yPos)))));
@@ -306,11 +306,11 @@ void pin(wayPoint a, wayPoint b, wayPoint c) {
   }
   pin(a, b, c, dist);
 }
-void pin(wayPoint a, wayPoint b, wayPoint c, float dist) {
-  arcpin(a, b, c, b, c, dist);
+void pin(wayPoint a, wayPoint b, wayPoint c, float dist) { //For pinning to a straight line, only need to define the endpoints
+  arcpin(a, b, c, b, c, dist); //This one lets you specify a distance to pin it at
 }
 void arcpin(wayPoint toPin, wayPoint a, wayPoint b, wayPoint c, wayPoint d, float dist) {
-  toPin.arcPinned = true;
+  toPin.arcPinned = true; //This one really arcpins. If a/b and c/d are the same, it effectively pins to a straight line.
   toPin.arcPin = dist;
   toPin.pinA = a;
   toPin.pinB = b;
@@ -325,7 +325,7 @@ void arcpin(wayPoint toPin, wayPoint a, wayPoint b, wayPoint c, wayPoint d, floa
 }
 
 
-void connect(wayPoint a, wayPoint b, color c) {
+void connect(wayPoint a, wayPoint b, color c) { //Draw lines
   stroke(0);
   strokeWeight(4);
   if (displayLeft || a.isScale) {
@@ -346,7 +346,7 @@ void connect(wayPoint a, wayPoint b, color c) {
     line(-a.xPos, a.yPos, -b.xPos, b.yPos);
   }
 }
-void connectArc(wayPoint a, wayPoint b, wayPoint c, wayPoint d, color col) {
+void connectArc(wayPoint a, wayPoint b, wayPoint c, wayPoint d, color col) { //Draw Bezier curves
   strokeWeight(4);
   stroke(0);
   if (displayLeft) {
